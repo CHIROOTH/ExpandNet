@@ -55,8 +55,8 @@ d000.s001	I ran	Yo corrí	I run	Yo corrí	yo correr	PRON VERB
 
 ## Step 2 Align
 
-For the alignment step, it is recommended to use DBAlign, for which a dictionary is required.
-Dictionaries must be .tsv files, where each row contains a source-side word, then a tab character, then a space-separated list of possible target-side words that it may be translated as. Underscores should be used in place of spaces for multi-word expressions, or any tokens with spaces within them.
+For the alignment step, it is recommended to use DBAlign, for which a **dictionary** is required.
+Dictionaries must be .tsv files, where each row contains a source-side word, then a tab character, then a space-separated list of possible target-side words that it may be translated as. A character which we call the `join_char` should be used in place of spaces for multi-word expressions, or any tokens with spaces within them. You will provide this `join_char` as a command line argument to steps 2 and 3 (default: underscore)
 An example dictionary, `wikpan-en-es.tsv` is included to demonstrate the format these dictionaries should take.
 
 ### Note
@@ -153,7 +153,8 @@ python3 expandnet_step3_project.py \
 --alignment_file expandnet_step2_align.out.tsv \
 --output_file expandnet_step3_project.out.tsv \
 --join_char _ \
---token_info_file expandnet_step3_project.token_info.out.tsv
+--token_info_file expandnet_step3_project.token_info.out.tsv \
+--no_pos_screen
 ```
 
 ## eval_release.py
