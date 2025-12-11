@@ -91,19 +91,62 @@ python3 expandnet_step2_align.py \
 --join_char _
 ```
 
-## Step 3 Project
+## Step 3: Projection
 
-The projection step takes the output of Step 2 (alignment) and uses it to transfer sense annotations or lexical information from the source language to the target language.
+The projection step takes the output of **Step 2 (alignment)** and uses it to transfer sense annotations or lexical information from the source language to the target language.
 
-Takes eight arguments:
-1. src_data: The original XML file containing the source-language sentences (same as used in Step 1).
-2. src_gold: The gold key file containing the source-language sense annotations.
-3. dictionary: The bilingual dictionary used for lexical projection (likely the same .tsv dictionary used in Step 2).
-4. alignment_file: The alignment output file produced by Step 2.
-5. output_file: The address of the file where the projected annotations will be saved.
-6. join_char: A character used to join multi-word lexical items during projection (default '_').
-7. token_info_file: The address of the file where the more detailed, token-level log will be saved.
-8. no_pos_screen: By default, the system rejects projections where the source and target side don't have the same part of speech. You can optionally set this flag to skip this filtering step and allow those projections. (To use this screen, your data from the previous steps must contain parts of speech.)
+This script has **eight required arguments** plus several **optional flags** that toggle different filtering behaviors.
+
+---
+
+### **Required Arguments**
+
+1. **src_data**  
+   The original XML file containing the source-language sentences (the same file used in Step 1).
+
+2. **src_gold**  
+   The gold key file containing the source-language sense annotations.
+
+3. **dictionary**  
+   The bilingual dictionary used for lexical projection (typically the same `.tsv` dictionary used in Step 2).
+
+4. **alignment_file**  
+   The alignment output file produced in Step 2.
+
+5. **output_file**  
+   Path to the file where projected annotations will be saved.
+
+6. **join_char**  
+   Character used to join multi-word lexical items during projection (default: `_`).
+
+7. **token_info_file**  
+   Path to the file where detailed token-level logs will be written.
+
+8. **no_pos_screen** *(only applicable if still accepted as a positional argument)*  
+   Previously controlled POS filtering; now superseded by the `--no_pos_screen` flag below.
+
+---
+
+### **Optional Flags**
+
+These flags toggle different filtering screens.  
+By default, **all filters are ON**.  
+Passing a flag turns **OFF** the corresponding filter.
+
+- **`--no_pos_screen`**  
+  Turn off part-of-speech filtering. Normally, projections are rejected when the source and target POS differ. Requires POS information from previous steps.
+
+- **`--no_ne_screen`**  
+  Turn off named-entity filtering (which normally filters out capitalized named entities).
+
+- **`--no_dict_screen`**  
+  Turn off dictionary-based filtering. Normally, only dictionary-supported translations are projected.
+
+- **`--no_oov_screen`**  
+  Allow projection of English lexical items not found in the dictionary (OOV items).  
+  By default, OOV English terms are not projected.
+
+
 
 ```bash 
 python3 expandnet_step3_project.py \
