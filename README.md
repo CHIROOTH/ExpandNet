@@ -46,7 +46,7 @@ For the alignment step, it is recommended to use DBAlign, for which a dictionary
 Dictionaries must be .tsv files, where each row contains a source-side word, then a tab character, then a space-separated list of possible target-side words that it may be translated as. Underscores should be used in place of spaces for multi-word expressions, or any tokens with spaces within them.
 An example dictionary, `wikpan-en-es.tsv` is included to demonstrate the format these dictionaries should take.
 
-###Note
+### Note
 Please refer to `requirements.txt` for dependencies. For this step, you may need to download additional spaCy language models.
 You can do this with:
 
