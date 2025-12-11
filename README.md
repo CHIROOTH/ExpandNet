@@ -95,7 +95,7 @@ python3 expandnet_step2_align.py \
 
 The projection step takes the output of **Step 2 (alignment)** and uses it to transfer sense annotations or lexical information from the source language to the target language.
 
-This script has **eight required arguments** plus several **optional flags** that toggle different filtering behaviors.
+This script has **seven required arguments** plus four **optional flags** that toggle different filtering behaviors.
 
 ---
 
@@ -121,9 +121,6 @@ This script has **eight required arguments** plus several **optional flags** tha
 
 7. **token_info_file**  
    Path to the file where detailed token-level logs will be written.
-
-8. **no_pos_screen** *(only applicable if still accepted as a positional argument)*  
-   Previously controlled POS filtering; now superseded by the `--no_pos_screen` flag below.
 
 ---
 
