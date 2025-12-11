@@ -1,7 +1,8 @@
 # A3: Concepts
 
-The pipeline consists of three steps: translation, alignment, and projection. 
-The built-in translation modules only support a limited number of language pairs, so if you are working with an unsupported pair, you may directly supply translations to the second step of the pipeline in the format it expects.
+ExpandNet converts source-language lexical/sense annotations into target-language equivalents.
+It does this in three steps: translating sentences, aligning source/target tokens, and projecting annotations across the alignment.
+You can run each step independently, customize aligners and dictionaries, and manually supply translations if your language pair isn’t supported.
 
 ## Step 1 Translate
 
@@ -31,6 +32,13 @@ The output of the translation step is a tsv file with columns named: 'sentence_i
 These columns should be tab-separated. The sentence id should be a unique identifier, the field 'text' should contain the raw source-side text, 'translation' should contain the raw translation, 'lemma' should contain a string of space-separated source-language lemmatization, translation_token should contain space-separated target language tokens (with underscores used to replace tokens which contain spaces for any reason) and translation_lemma contains a space-separated string of target-side lemmas in much the same way, while translation_pos contains a space-separated string of target-side POS tags in either the 17-tag Universal POS framework, or simply 'n', 'a', 'j', 'r', 'x'.
 If Step 1 is unsupported for your language pair, you may create a file of this format on your own, and continue to Step 2.
 Note that lemmatization is recommended, but not strictly necessary. The lemmatized columns may contain the same text as the tokenized columns if needed.
+
+Here is an example:
+
+```tsv
+sentence_id	text	translation	lemma	translation_token	translation_lemma	translation_pos
+d000.s001	I ran	Yo corrí	I run	Yo corrí	yo correr	PRON VERB
+```
 
 ## Step 2 Align
 
