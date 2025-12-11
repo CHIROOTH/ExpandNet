@@ -93,6 +93,10 @@ print()
 
 # Get counts and report.
 num_synsets_in_gold = len(gold_bnid_to_lemmas)
+num_synsets_in_gold_with_lemmas = sum(1 for v in gold_bnid_to_lemmas.values() if len(v) > 0)
+
+print(num_synsets_in_gold_with_lemmas)
+
 print(f'Source synsets to cover: {num_synsets_in_gold}')
 num_senses_for_eval = len(senses_for_eval)
 print(f'Senses to evaluate:      {num_senses_for_eval}')
@@ -128,6 +132,10 @@ sense_precision = safe_div(correct_senses, num_senses_for_eval)
 sense_recall = safe_div(correct_senses, total_senses)
 sense_adj_recall = safe_div(pred_senses, total_senses)
 sense_f1 = safe_div(2 * sense_precision * sense_recall, sense_precision + sense_recall)
+bn_cov = safe_div(num_synsets_in_gold_with_lemmas, num_synsets_in_gold)
+
+print(f"BN coverage of this language is: {round(100 * bn_cov, 1)}")
+print()
 
 print(f"SENSE\tcorrect_senses:      {correct_senses}")
 print(f"SENSE\tnum_senses_for_eval: {num_senses_for_eval}")
@@ -142,6 +150,7 @@ print()
 synset_precision = safe_div(num_synsets_with_correct_sense, num_senses_covered)
 synset_recall = safe_div(num_synsets_with_correct_sense, num_synsets_in_gold)
 synset_adj_recall = safe_div(num_synsets_with_projected_sense, num_synsets_in_gold)
+synset_poss_recall = safe_div(num_synsets_with_correct_sense, num_synsets_in_gold_with_lemmas)
 synset_f1 = safe_div(2 * synset_precision * synset_recall, synset_precision + synset_recall)
 core_coverage = safe_div(len(synsets_present_in_output & core_synsets), len(core_synsets))
 
@@ -150,6 +159,7 @@ print(f"SYNSET\tnum_senses_covered:             {num_senses_covered}")
 print(f"SYNSET\tnum_synsets_in_gold:            {num_synsets_in_gold}")
 print(f"SYNSET\tPRECISION\t{round(100 * synset_precision, 1)}")
 print(f"\033[94mSYNSET\tRECALL\t{round(100 * synset_recall, 1)}\033[0m")
+print(f"\033[94mSYNSET\tNONEMPTY RECALL\t{round(100 * synset_poss_recall, 1)}\033[0m")
 print(f"\033[94mSYNSET\tADJUSTED RECALL\t{round(100 * synset_adj_recall, 1)}\033[0m")
 print(f"SYNSET\tF1\t{round(100 * synset_f1, 1)}")
 print(f"SYNSET\tCORE COVERAGE\t{round(100 * core_coverage, 1)}")

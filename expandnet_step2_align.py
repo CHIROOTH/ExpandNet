@@ -15,7 +15,7 @@ def parse_args():
                       help="Aligner to use ('simalign' or 'dbalign').")
   parser.add_argument("--output_file", type=str, default="expandnet_step2_align.out.tsv",
                       help="Output file to save the file with alignments to.")
-  parser.add_argument("--join_char", type=str, default='_')
+  parser.add_argument("--join_char", type=str, default='')
   
   return parser.parse_args()
 
@@ -27,6 +27,8 @@ print(f"Languages:   {args.lang_src} -> {args.lang_tgt}")
 print(f"Aligner:     {args.aligner}")
 print(f"Input file:  {args.translation_df_file}")
 print(f"Output file: {args.output_file}")
+
+print("JOIN CHAR IS", JOIN_CHAR)
 
 if args.aligner == 'simalign':
   from simalign import SentenceAligner

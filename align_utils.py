@@ -48,6 +48,13 @@ ALIGNMENT_CACHE = {}
 SYNSET_CACHED_DICT = {}
 
 
+def safe_split(large_string, split_by):
+    if split_by == "":
+        return list(large_string)
+    return large_string.split(split_by)
+
+    
+
 def convert_quad_to_tuple(ours):
     ans = []
     for align in ours.split():
@@ -118,7 +125,7 @@ class DBAligner:
         lemma1 = first_word
         lemma2 = second_word
       elif self.join_char in second_word or self.join_char in first_word:
-        for guy in first_word.split(self.join_char) + second_word.split(self.join_char):
+        for guy in safe_split(first_word, self.join_char) + safe_split(second_word, self.join_char):
             
                 if guy in PUNCTUATION:
                   

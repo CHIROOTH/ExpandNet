@@ -25,12 +25,31 @@ def parse_args():
     dest="pos_screen",
     help="Optionally turn OFF the filtering based on part-of-speech (default: filtering is ON)."
 )
+  parser.add_argument(
+    "--no_ne_screen",
+    action="store_false",
+    dest="ne_screen",
+    help="Optionally turn OFF the filtering of named entities (by caps) (default: filtering is ON)."
+)
+  parser.add_argument(
+    "--no_dict_screen",
+    action="store_false",
+    dest="dict_screen",
+    help="Optionally turn OFF the dictionary filtering (default: filtering is ON)."
+)
+  parser.add_argument(
+    "--no_oov_screen",
+    action="store_false",
+    dest="oov_screen",
+    help="Optionally, allow the projections whose English value isn't in the dictionary (default: OOV English terms are NOT projected)."
+)
   return parser.parse_args()
 
 args = parse_args()
 
 csv.field_size_limit(sys.maxsize)
 
+print("JOIN CHAR IS '" + args.join_char + "'")
 print(f"Source data:     {args.src_data}")
 print(f"Source gold:     {args.src_gold}")
 print(f"Dictionary:      {args.dictionary}")
@@ -46,7 +65,7 @@ print("Loading alignment data...")
 df_sent = pd.read_csv(args.alignment_file, sep='\t')
 print(f"Alignment loaded: {len(df_sent)} sentences")
 
-def load_dict(filepaths):
+def load_dict(filepaths, jc):
     """Load multiple TSV files into a dict: {english_word: set(french_words)}.
     All spaces are normalized to underscores.
     """
@@ -58,8 +77,8 @@ def load_dict(filepaths):
                 if len(row) < 2:
                     print(f"Warning: Line {line_num} in {filepath} has fewer than 2 columns.")
                     continue
-                eng_word = row[0].strip().lower().replace(' ', '_')  # Normalize English key
-                fr_words = set(word.strip().lower().replace(' ', '_') for word in row[1].split())
+                eng_word = row[0].strip().lower().replace(' ', '_').replace('_', jc)  # Normalize English key
+                fr_words = set(word.strip().lower().replace(' ', '_').replace('_', jc) for word in row[1].split())
                 if eng_word in dict_:
                     dict_[eng_word].update(fr_words)  # Merge sets if key exists
                 else:
@@ -76,7 +95,7 @@ def pos_match(pos_a, pos_b):
       return False
   else:
     # TODO There are multiple ways to do this. Maybe ask about it, but for now... let's say 'in' is the way.
-    return pos_b in pos_a and pos_b != 'x'
+    return pos_a == pos_b[0] and pos_a != 'x'
   
   
 def pos_map(in_pos):
@@ -90,27 +109,51 @@ def pos_map(in_pos):
    'ADV': 'r', 'ADP': 'r', 'PART': 'r', 'SCONJ': 'r',
    'CCONJ': 'x', 'INTJ': 'x', 'SYM': 'x', 'PUNCT': 'x', 'DET': 'x', 'X': 'x'}
   
-  return POS_DICTIONARY[in_pos]
+  try:
+    return POS_DICTIONARY[in_pos]
+  except:
+    assert False, "INVALID POS: " + in_pos
+
+def is_mwe(tok, join_character):
+  return join_character in tok
+
+def safe_replace(s, old, new):
+    if old == "":
+        return s
+    return s.replace(old, new)
 
 
-def is_valid_translation(eng_word, fr_word, dict_, join_char, pos1=None, pos2=None, doing_pos_screening=True):
+def is_valid_translation(eng_orig_tok, eng_word, fr_word, dict_, join_char, mask_obj, pos1=None, pos2=None):
   """Check if (eng_word, fr_word) is a valid translation pair in the dict."""
+  
+  if mask_obj['screen_ne'] and eng_orig_tok[0].isupper():
+    return False
   eng_word = eng_word.lower().strip().replace(' ', '_').replace('_', join_char)
   fr_word = fr_word.lower().strip().replace(' ', '_').replace('_', join_char)
-  if eng_word not in dict_:
+  
+  if mask_obj['screen_oov'] and eng_word not in dict_:
+    return False
+  elif eng_word not in dict_:
+    return True
+  
+  if mask_obj['screen_dict'] and fr_word not in dict_[eng_word]:
     return False
   
-  return fr_word in dict_[eng_word] and (not doing_pos_screening or pos_match(pos1, pos2))
+  if mask_obj['screen_pos'] and not pos_match(pos1, pos2):
+    if not is_mwe(fr_word, join_char):
+      return False
+  
+  return True
 
-def write_the_stuff(file, tok, source, src_pos, t_candidate, candidate, bn, t_pos, join_char, tgt_sent, w):
-  file.write(tok_id + '\t' + tok.replace(join_char, ' ') + '\t' + 
-             source.replace(join_char, ' ') + '\t' + 
-             src_pos.replace(join_char, ' ') + '\t' + t_candidate.replace(join_char, ' ') + '\t'  + 
-             candidate.replace(join_char, ' ') + '\t' + 
+def write_the_stuff(file, tok, source, src_pos, t_pos_longer, t_candidate, candidate, bn, t_pos, join_char, tgt_sent, w, mask_ob):
+  file.write(tok_id + '\t' + safe_replace(tok, join_char, ' ') + '\t' + 
+             safe_replace(source, join_char, ' ') + '\t' + 
+             src_pos.replace('_', ' ') + '\t' + t_pos_longer.replace('_', ' ') + '(' + t_pos.replace('_', ' ') + ')' + '\t' + safe_replace(t_candidate, join_char, ' ') + '\t'  + 
+             safe_replace(candidate, join_char, ' ') + '\t' + 
              bn + '\t' + 
-             str(is_valid_translation(source, candidate, dict_wik, join_char, src_pos, t_pos)) + '\t' + 
-             str(bool(is_valid_translation(source, candidate, dict_wik, join_char, 'n', 'n') and not is_valid_translation(source, candidate, dict_wik, join_char, src_pos, t_pos))).upper() + '\t' + 
-             tgt_sent.replace(join_char, ' ') + '\t' + w + '\n')
+             str(is_valid_translation(tok, source, candidate, dict_wik, join_char, mask_ob, 'n', 'n')) + '\t' + 
+             str(bool(pos_match(src_pos, t_pos))).upper() + '\t' + 
+             safe_replace(tgt_sent, join_char, ' ') + '\t' + w + '\n')
 
 def get_alignments(alignments, i):
   """Get all target indices aligned to source index i."""
@@ -118,7 +161,7 @@ def get_alignments(alignments, i):
 
 # Load the dictionary.
 print("Loading dictionary...")
-dict_wik = load_dict([args.dictionary])
+dict_wik = load_dict([args.dictionary], args.join_char)
 print(f"Dictionary loaded")
 
 # Group by sentence_id and aggregate bn_gold and lemma values into lists
@@ -148,11 +191,17 @@ df_sent = (
 )
 print(f"Data prepared")
 
+mask_object = {'screen_ne': args.ne_screen,
+               'screen_oov': args.oov_screen,
+               'screen_dict': args.dict_screen,
+               'screen_pos': args.pos_screen,
+               }
+
 # Project senses
 print("Projecting senses...")
 senses = set()
 with open(args.token_info_file, 'w', encoding='utf-8') as f:
- f.write("Token ID" + '\t' + "Source Token" + '\t' + "Source Lemma" + '\t' + "Source POS" + '\t' + "Translated Token" + '\t'  + "Translated Lemma" + '\t' + "Synset ID" + '\t' + "Link Valid? (According to POS and Dictionary)" + '\t' + "Dict OK but POS bad" + '\t' + 'Target Sentence'+ '\t' + 'Source Sentence' + '\n')
+ f.write("Token ID" + '\t' + "Source Token" + '\t' + "Source Lemma" + '\t' + "Source POS" + '\t'  + "Target POS" + '\t' + "Translated Token" + '\t'  + "Translated Lemma" + '\t' + "Synset ID" + '\t' + "Link in Dictionary?" + '\t' + "POS Match?" + '\t' + 'Target Sentence'+ '\t' + 'Source Sentence' + '\n')
  for _, row in df_sent.iterrows():
   tok_num = 0
   src = row['lemma_gold']
@@ -162,7 +211,7 @@ with open(args.token_info_file, 'w', encoding='utf-8') as f:
   tgt_tok = row['translation_token'].split(' ')
   if args.pos_screen:
     tgt_pos = row['translation_pos'].split(' ')
-    tgt_pos = [pos_map(a) for a in tgt_pos]
+    tgt_pos = [a for a in tgt_pos]
   else:
     tgt_pos = ['x' for _ in tgt_tok]
   assert len(tgt) == len(tgt_tok)
@@ -176,8 +225,10 @@ with open(args.token_info_file, 'w', encoding='utf-8') as f:
     source = src[i]
     tok = src_tok[i]
     tok_id = sent_id + f".s{tok_num:03d}"
+   
     if not str(bn)[:3] == 'bn:':
-      f.write('wf' + '\t' + tok.replace(args.join_char, '_') + '\t' + source.replace(args.join_char, '_') + '\t' + ' ' + '\t'  + ' ' + '\t' + ' ' + '\t' + ' ' + '\n')
+      
+      f.write('wf' + '\t' + tok.replace(args.join_char, '_').replace('_', args.join_char) + '\t' + source.replace(args.join_char, '_').replace('_', args.join_char) + '\t' + ' ' + '\t'  + ' ' + '\t' + ' ' + '\t' + ' ' + '\n')
       continue
     src_pos = bn[-1]
     
@@ -186,24 +237,26 @@ with open(args.token_info_file, 'w', encoding='utf-8') as f:
     if len(alignment_indices) > 1:
       candidates = [args.join_char.join([tgt[j] for j in alignment_indices])]
       t_candidates = [args.join_char.join([tgt_tok[j] for j in alignment_indices])]
-      t_pos = args.join_char.join([tgt_pos[j] for j in alignment_indices])
+      t_pos = args.join_char.join([pos_map(tgt_pos[j]) for j in alignment_indices])
+      target_pos_orig = args.join_char.join([str(tgt_pos[j]) for j in alignment_indices])
     elif len(alignment_indices) == 1:
       candidates = [tgt[alignment_indices[0]]]
       t_candidates = [tgt_tok[alignment_indices[0]]]
-      t_pos = tgt_pos[alignment_indices[0]]
+      t_pos = pos_map(tgt_pos[alignment_indices[0]])
+      target_pos_orig = str(tgt_pos[alignment_indices[0]])
     else:
       candidates = []
       t_candidates = []
       t_pos = 'x'
-
+      target_pos_orig = 'X'
     if candidates:
       for t_candidate, candidate in zip(t_candidates, candidates):
         
         
         src_pos = bn[-1].lower()
-        write_the_stuff(f, tok, source, src_pos, t_candidate, candidate, bn, t_pos, args.join_char, ' '.join(tgt_tok), w)
+        write_the_stuff(f, tok, source, src_pos, target_pos_orig, t_candidate, candidate, bn, t_pos, args.join_char, args.join_char.join(tgt_tok), w, mask_object)
         
-        if is_valid_translation(source, candidate, dict_wik, args.join_char, src_pos, t_pos, args.pos_screen):
+        if is_valid_translation(tok, source, candidate, dict_wik, args.join_char, mask_object, src_pos, t_pos):
           senses.add((bn, candidate))
 
 print(f"Found {len(senses)} unique sense-lemma pairs")
@@ -211,7 +264,7 @@ print(f"Found {len(senses)} unique sense-lemma pairs")
 print(f"Saving results to {args.output_file}...")
 with open(args.output_file, 'w') as f:
   for (bn, lemma) in sorted(senses):
-    print(bn, lemma.replace(args.join_char, ' '), sep='\t', file=f)
+    print(bn, safe_replace(lemma, args.join_char, ' '), sep='\t', file=f)
 
 print('Complete!')
 
