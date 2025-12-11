@@ -28,9 +28,22 @@ python3 expandnet_step1_translate.py \
 
 ## Translation Output
 
-The output of the translation step is a tsv file with columns named: 'sentence_id', 'text', 'translation', 'lemma', 'translation_token', 'translation_lemma' and, optionally, 'translation_pos'.
-These columns should be tab-separated. The sentence id should be a unique identifier. The column 'text' should contain the raw source-side text. The column 'translation' should contain the raw translation. The column 'lemma' should contain a string of space-separated source-language lemmatization. The column translation_token should contain space-separated target language tokens (a character, for example underscores, can be used to replace tokens which contain spaces for any reason. This character will be accepted as a command line argument in later steps). Then translation_lemma should contain a space-separated string of target-side lemmas in much the same way. Finally translation_pos contains a space-separated string of target-side POS tags in either the 17-tag Universal POS framework, or simply 'n', 'a', 'j', 'r', 'x'.
-If Step 1 is unsupported for your language pair, you may create a file of this format on your own, and continue to Step 2.
+The output of the translation step is a tsv file with columns named: 'sentence_id', 'text', 'translation', 'lemma', 'translation_token', 'translation_lemma' and, optionally, 'translation_pos'. These columns should be tab-separated. The sentence id should be a unique identifier. 
+
+- **sentence_id**: unique identifier of the source sentence.
+- **text**: raw source-side text.
+- **translation**: raw translation.
+- **lemma**: space-separated source-language lemmas.
+- **translation_token**: space-separated target-language tokens.  
+  - If a token contains spaces, replace them using the `join_char` (e.g., underscores).  
+  - This same character must be used consistently in later steps.
+- **translation_lemma**: space-separated target-side lemmas.
+- **translation_pos** (optional): space-separated target-side POS tags, using either  
+  - the Universal POS tagset (17 tags), or  
+  - the simplified tagset: `n`, `a`, `j`, `r`, `x`.
+
+
+**If Step 1 is unsupported for your language pair, you may create a file of this format on your own, and continue to Step 2.**
 
 Here is an example:
 
