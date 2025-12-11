@@ -2,7 +2,7 @@
 
 ExpandNet converts source-language lexical/sense annotations into target-language equivalents.
 It does this in three steps: translating sentences, aligning source/target tokens, and projecting annotations across the alignment.
-You can run each step independently, customize aligners and dictionaries, and manually supply translations if your language pair isn’t supported.
+You can run each step independently, customize aligners and dictionaries, and manually supply translations if your language pair isn’t supported, thus skipping step 1.
 
 ## Step 1 Translate
 
@@ -29,11 +29,11 @@ python3 expandnet_step1_translate.py \
 ## Translation Output
 
 The output of the translation step is a tsv file with columns named: 'sentence_id', 'text', 'translation', 'lemma', 'translation_token', 'translation_lemma' and, optionally, 'translation_pos'.
-These columns should be tab-separated. The sentence id should be a unique identifier, the field 'text' should contain the raw source-side text, 'translation' should contain the raw translation, 'lemma' should contain a string of space-separated source-language lemmatization, translation_token should contain space-separated target language tokens (with underscores used to replace tokens which contain spaces for any reason) and translation_lemma contains a space-separated string of target-side lemmas in much the same way, while translation_pos contains a space-separated string of target-side POS tags in either the 17-tag Universal POS framework, or simply 'n', 'a', 'j', 'r', 'x'.
+These columns should be tab-separated. The sentence id should be a unique identifier. The column 'text' should contain the raw source-side text. The column 'translation' should contain the raw translation. The column 'lemma' should contain a string of space-separated source-language lemmatization. The column translation_token should contain space-separated target language tokens (a character, for example underscores, can be used to replace tokens which contain spaces for any reason. This character will be accepted as a command line argument in later steps). Then translation_lemma should contain a space-separated string of target-side lemmas in much the same way. Finally translation_pos contains a space-separated string of target-side POS tags in either the 17-tag Universal POS framework, or simply 'n', 'a', 'j', 'r', 'x'.
 If Step 1 is unsupported for your language pair, you may create a file of this format on your own, and continue to Step 2.
-Note that lemmatization is recommended, but not strictly necessary. The lemmatized columns may contain the same text as the tokenized columns if needed.
 
 Here is an example:
+
 
 ```tsv
 sentence_id	text	translation	lemma	translation_token	translation_lemma	translation_pos
@@ -46,7 +46,8 @@ For the alignment step, it is recommended to use DBAlign, for which a dictionary
 Dictionaries must be .tsv files, where each row contains a source-side word, then a tab character, then a space-separated list of possible target-side words that it may be translated as. Underscores should be used in place of spaces for multi-word expressions, or any tokens with spaces within them.
 An example dictionary, `wikpan-en-es.tsv` is included to demonstrate the format these dictionaries should take.
 
-Note: Please refer to `requirements.txt` for dependencies. For this step, you may need to download additional spaCy language models.
+###Note
+Please refer to `requirements.txt` for dependencies. For this step, you may need to download additional spaCy language models.
 You can do this with:
 
 ```bash
