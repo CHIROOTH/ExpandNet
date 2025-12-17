@@ -18,7 +18,7 @@ def parse_args():
   parser.add_argument("--output_file", type=str, default="expandnet_step3_project.out.tsv")
   parser.add_argument("--token_info_file", type=str, default="expandnet_step3_project.token_info.tsv",
                       help="(Helpful for understanding the process undergone.)")
-  parser.add_argument("--join_char", type=str, default='_')
+  parser.add_argument("--join_char", type=str, default='')
   parser.add_argument(
     "--no_pos_screen",
     action="store_false",
@@ -47,7 +47,13 @@ def parse_args():
 
 args = parse_args()
 
-csv.field_size_limit(sys.maxsize)
+max_int = sys.maxsize
+while True:
+    try:
+        csv.field_size_limit(max_int)
+        break
+    except OverflowError:
+        max_int //= 10
 
 print("JOIN CHAR IS '" + args.join_char + "'")
 print(f"Source data:     {args.src_data}")
@@ -210,8 +216,14 @@ with open(args.token_info_file, 'w', encoding='utf-8') as f:
   tgt = row['translation_lemma'].split(' ')
   tgt_tok = row['translation_token'].split(' ')
   if args.pos_screen:
-    tgt_pos = row['translation_pos'].split(' ')
-    tgt_pos = [a for a in tgt_pos]
+    try:
+      tgt_pos = row['translation_pos'].split(' ')
+   
+    except KeyError:
+      print("ERROR: no translation_pos column found. " 
+            "Check that you have one, or turn off the part-of-speech"
+            " filter using the flag --no_pos_screen") 
+      exit(-1)
   else:
     tgt_pos = ['x' for _ in tgt_tok]
   assert len(tgt) == len(tgt_tok)
@@ -261,8 +273,8 @@ with open(args.token_info_file, 'w', encoding='utf-8') as f:
 
 print(f"Found {len(senses)} unique sense-lemma pairs")
 
-print(f"Saving results to {args.output_file}...")
-with open(args.output_file, 'w') as f:
+print(f"Saving results to {args.output_file}")
+with open(args.output_file, 'w', encoding='utf-8') as f:
   for (bn, lemma) in sorted(senses):
     print(bn, safe_replace(lemma, args.join_char, ' '), sep='\t', file=f)
 
