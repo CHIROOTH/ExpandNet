@@ -30,8 +30,6 @@ print(f"Aligner:     {args.aligner}")
 print(f"Input file:  {args.translation_df_file}")
 print(f"Output file: {args.output_file}")
 
-print("JOIN CHAR IS", JOIN_CHAR)
-
 if args.aligner == 'simalign':
   from simalign import SentenceAligner
   ali = SentenceAligner(model="xlmr", layer=8, token_type="bpe", matching_methods="i")
@@ -76,7 +74,9 @@ if args.num_workers > 1:
     )
     apply_fn = lambda df, fn: df.parallel_apply(fn, axis=1)
 else:
-    apply_fn = lambda df, fn: df.apply(fn, axis=1)
+    from tqdm import tqdm
+    tqdm.pandas()
+    apply_fn = lambda df, fn: df.progress_apply(fn, axis=1)
 
 print(f"Loading data from {args.translation_df_file}...")
 df_sent = pd.read_csv(args.translation_df_file, sep='\t')
