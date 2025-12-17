@@ -69,7 +69,7 @@ python3 -m spacy download <MODELNAME>
 
 The models employed in the code by default are: en_core_web_lg, es_core_news_lg, fr_core_news_lg, it_core_news_lg, ro_core_news_lg, zh_core_web_lg, xx_ent_wiki_sm.
 
-Takes seven arguments:
+Takes eight arguments:
 1. translation_df_file: The address of the .tsv created by Step 1 (or created independently if working with an unsupported language pair)
 2. lang_src: The language key for the source language (default 'en').
 3. lang_tgt: The language key for the target language (default 'fr').
@@ -77,6 +77,7 @@ Takes seven arguments:
 5. dict: If using dbalign, the multilingual dictionary which it will use, or 'bn' to use BabelNet as this dictionary (if available). 
 6. output_file: The address of the file where the result of the alignment step will be saved.
 7. join_char:  The character to use to connect multi-word expressions. Should not be a space.
+8. num_workers: The number of parallel processes to use. The default, 1, is strongly recommended for most cases.
 
 Altogether, it can be run as such:
 
