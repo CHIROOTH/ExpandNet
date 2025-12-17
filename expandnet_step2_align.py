@@ -15,6 +15,8 @@ def parse_args():
                       help="Aligner to use ('simalign' or 'dbalign').")
   parser.add_argument("--output_file", type=str, default="expandnet_step2_align.out.tsv",
                       help="Output file to save the file with alignments to.")
+  parser.add_argument("--num_workers", type=int, default=1,
+                      help="Number of workers to paralellize the alignment computation over. More than one is not recommended on Windows or less powerful machines. (Default: 1)")
   parser.add_argument("--join_char", type=str, default='')
   
   return parser.parse_args()
@@ -63,23 +65,32 @@ elif args.aligner == 'dbalign':
   def align(lang_src, lang_tgt, tokens_src, tokens_tgt):
     tokens_tgt = [a.replace(JOIN_CHAR, " ") for a in tokens_tgt]
     alignment_spans = ali.new_align(tokens_src, tokens_tgt)
+    
     return(spans_to_links(alignment_spans))
 
-from pandarallel import pandarallel
-
-pandarallel.initialize(progress_bar=True, nb_workers=5)
+if args.num_workers > 1:
+    from pandarallel import pandarallel
+    pandarallel.initialize(
+        progress_bar=True,
+        nb_workers=args.num_workers
+    )
+    apply_fn = lambda df, fn: df.parallel_apply(fn, axis=1)
+else:
+    apply_fn = lambda df, fn: df.apply(fn, axis=1)
 
 print(f"Loading data from {args.translation_df_file}...")
 df_sent = pd.read_csv(args.translation_df_file, sep='\t')
 print(f"Loaded {len(df_sent)} sentences\n")
 
 print("Aligning sentences...")
-df_sent['alignment'] = df_sent.parallel_apply(
-    lambda row: align(args.lang_src,
-                      args.lang_tgt,
-                      row['lemma'].split(' '),
-                      row['translation_lemma'].split(' ')),
-    axis=1
+df_sent['alignment'] = apply_fn(
+    df_sent,
+    lambda row: align(
+        args.lang_src,
+        args.lang_tgt,
+        row['lemma'].split(' '),
+        row['translation_lemma'].split(' ')
+    )
 )
 
 print(f"\nSaving results to {args.output_file}...")
