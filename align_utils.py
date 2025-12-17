@@ -132,8 +132,8 @@ class DBAligner:
                     return False
                 
                     
-        lemma1 = self.join_char.join([get_lemma(a, first_lang) for a in first_word.split(self.join_char)])
-        lemma2 = self.join_char.join([get_lemma(a, second_lang) for a in second_word.split(self.join_char)])
+        lemma1 = self.join_char.join([get_lemma(a, first_lang) for a in safe_split(first_word, self.join_char)])
+        lemma2 = self.join_char.join([get_lemma(a, second_lang) for a in safe_split(second_word, self.join_char)])
       else:
         lemma1 = get_lemma(first_word, first_lang)
         lemma2 = get_lemma(second_word, second_lang)
@@ -182,6 +182,7 @@ class DBAligner:
         elif isinstance(tgt, list):
             target_words = tgt.copy()
     
+     
         aligns = AlignlistObj([], source_words, target_words)
     
         unal_source_indices = list(range(len(source_words)))

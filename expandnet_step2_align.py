@@ -21,6 +21,12 @@ def parse_args():
   
   return parser.parse_args()
 
+
+def safe_replace(s, old, new):
+    if old == "":
+        return s
+    return s.replace(old, new)
+
 args = parse_args()
 
 JOIN_CHAR = args.join_char
@@ -61,9 +67,9 @@ elif args.aligner == 'dbalign':
     return(sorted(links))
 
   def align(lang_src, lang_tgt, tokens_src, tokens_tgt):
-    tokens_tgt = [a.replace(JOIN_CHAR, " ") for a in tokens_tgt]
+    tokens_tgt = [safe_replace(a, JOIN_CHAR, " ") for a in tokens_tgt]
     alignment_spans = ali.new_align(tokens_src, tokens_tgt)
-    
+   
     return(spans_to_links(alignment_spans))
 
 if args.num_workers > 1:
