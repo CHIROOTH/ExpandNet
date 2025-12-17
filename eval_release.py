@@ -37,7 +37,7 @@ def lowercase_and_remove_zero_width(string):
 def file_to_pairs(f):
     pairs = []
     seen = set()
-    with open(f, 'r') as fh:
+    with open(f, 'r', encoding='utf-8') as fh:
         for i, line in enumerate(fh):
             fields = lowercase_and_remove_zero_width(line).strip().split('\t')
             fields[1] = fields[1].replace(' ', '_')
@@ -51,7 +51,7 @@ def file_to_pairs(f):
 
 def file_to_set(f):
     """Read a file into a set of lines."""
-    with open(f, 'r') as fh:
+    with open(f, 'r', encoding='utf-8') as fh:
         return set(lowercase_and_remove_zero_width(line).strip() for line in fh if line.strip())
 
 def safe_div(n, d):
@@ -65,7 +65,7 @@ print(f"Core synsets: {args.core_synsets}\n")
 # Read in the list of synsets to cover, and their gold contents.
 print("Loading gold standard...")
 gold_bnid_to_lemmas = {}
-with open(args.file_gold, 'r') as f:
+with open(args.file_gold, 'r', encoding='utf-8') as f:
     for line in f:
         line = lowercase_and_remove_zero_width(line.strip())
         if not line:  # skip empty lines
