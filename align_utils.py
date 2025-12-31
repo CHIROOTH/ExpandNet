@@ -14,14 +14,18 @@ STEM_CACHE = {}
 
 POS_CACHE = {}
 
-LEMMATIZERS = {'es': spacy.load("es_core_news_lg"), 
-               'it': spacy.load("it_core_news_lg"), 
-               'fr': spacy.load("fr_core_news_lg"), 
-               'en': spacy.load("en_core_web_lg"), 
-               'ro': spacy.load("ro_core_news_lg"), 
-               'zh': spacy.load("zh_core_web_lg"),
-               'xx': spacy.load('xx_ent_wiki_sm')
-                }
+
+_LEMMATIZER_MODELS = {
+    'es': "es_core_news_lg",
+    'it': "it_core_news_lg",
+    'fr': "fr_core_news_lg",
+    'en': "en_core_web_lg",
+    'ro': "ro_core_news_lg",
+    'zh': "zh_core_web_lg",
+    'xx': "xx_ent_wiki_sm",
+}
+
+_LEMMATIZER_CACHE = {}
 
 TAGDICT = {'NP': 'n', 'VBD': 'v', 'SPACE': 'x', 'DET': 'x', 'JJ': 'a', 'NN': 'n', 'NNS': 'n', 'ADV': 'r', 'ADJ': 'a', 'PRON': 'n', 'AUX': 'v', 'CCONJ': 'x', 'SCONJ': 'x', 'X': 'x',
            'VB': 'v', 'PP$': 'x', 'RB': 'r', 'VBN': 'v', 'IN': 'x', ',': 'x', 'SENT': 'x', 'PP': 'x', 'VERB': 'v', 'PROPN': 'n', 'NOUN': 'n', 'SYM': 'x', 'INTJ': 'x',
@@ -318,16 +322,35 @@ def read_function_words(file):
         return engans
     
 ENGLISH_FUNCTION_WORDS = read_function_words(HERE / 'dependencies/WList.pm')
+
+def get_lemmatizer(lang: str):
+    if lang not in _LEMMATIZER_MODELS:
+        raise KeyError(f"No lemmatizer configured for language '{lang}'")
+
+    if lang not in _LEMMATIZER_CACHE:
+        model_name = _LEMMATIZER_MODELS[lang]
+        try:
+            _LEMMATIZER_CACHE[lang] = spacy.load(model_name)
+        except OSError as e:
+            raise RuntimeError(
+                f"spaCy model '{model_name}' is not installed.\n"
+                f"Install it with:\n"
+                f"  python -m spacy download {model_name}"
+            ) from e
+
+    return _LEMMATIZER_CACHE[lang]
+
         
 def get_lemma(word, lang):
     if not word.strip():
         return word
     if lang == 'zh':
         return word
-    if lang in LEMMATIZERS:
-        proper_nlp = LEMMATIZERS[lang]
+    
+    if lang in _LEMMATIZER_MODELS:
+        proper_nlp = get_lemmatizer(lang)
     else:
-        proper_nlp = LEMMATIZERS['xx']
+        proper_nlp = get_lemmatizer('xx')
     cachekey = word + '<>' + lang
     if cachekey in STEM_CACHE:
         return STEM_CACHE[cachekey]
@@ -442,10 +465,10 @@ def token_pos_and_morph_tag(sentence, language):
     key = language + '<>' + sentence + '<>' + 'WITHMORPH'
     if key in POS_CACHE:
         return POS_CACHE[key]
-    if language in LEMMATIZERS:
-        doc = LEMMATIZERS[language](sentence)
+    if language in _LEMMATIZER_MODELS:
+        doc = get_lemmatizer(language)(sentence)
     else:
-        doc = LEMMATIZERS['xx'](sentence)
+        doc = get_lemmatizer('xx')(sentence)
    
     for token in doc:
         tokens.append(token.text)

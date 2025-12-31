@@ -44,6 +44,9 @@ try:
   pipe = pipeline("translation", model=tr_model, device=0)
 except OSError:
   raise RuntimeError(f"Unsupported language pair: {args.lang_src} -> {args.lang_tgt}")
+except ValueError:
+  pipe = pipeline("translation", model=tr_model)
+  
 
 model_map = {
   'en': 'en_core_web_lg',
