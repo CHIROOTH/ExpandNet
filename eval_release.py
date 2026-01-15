@@ -34,8 +34,9 @@ def remove_zero_width_characters(s: str) -> str:
 def lowercase_and_remove_zero_width(string):
     return remove_zero_width_characters(string.lower())
 # Reads a TSV file into a list of tuples.
-def file_to_pairs(f):
+def file_to_pairs(f, bnid_dict):
     pairs = []
+    nonempt_pairs = []
     seen = set()
     with open(f, 'r', encoding='utf-8') as fh:
         for i, line in enumerate(fh):
@@ -47,7 +48,9 @@ def file_to_pairs(f):
             if pair not in seen:
                 pairs.append(pair)
                 seen.add(pair)
-    return pairs
+                if len(bnid_dict[pair[0]]) > 0:
+                    nonempt_pairs.append(pair)
+    return pairs, nonempt_pairs
 
 def file_to_set(f):
     """Read a file into a set of lines."""
@@ -84,7 +87,7 @@ with open(args.file_gold, 'r', encoding='utf-8') as f:
 
 # Read the senses to be evaluated (into a list of pairs).
 print("Loading evaluation data...")
-senses_for_eval = file_to_pairs(args.file_eval)
+senses_for_eval, nonempty_senses_for_eval = file_to_pairs(args.file_eval, gold_bnid_to_lemmas)
 
 print("Loading core synsets...")
 core_synsets = file_to_set(args.core_synsets)
@@ -98,7 +101,7 @@ num_synsets_in_gold_with_lemmas = sum(1 for v in gold_bnid_to_lemmas.values() if
 print(num_synsets_in_gold_with_lemmas)
 
 print(f'Source synsets to cover: {num_synsets_in_gold}')
-num_senses_for_eval = len(senses_for_eval)
+num_senses_for_eval, num_nonempty_senses_for_eval = len(senses_for_eval), len(nonempty_senses_for_eval)
 print(f'Senses to evaluate:      {num_senses_for_eval}')
 num_senses_covered = len(set(e[0] for e in senses_for_eval))
 print(f'Synsets covered:         {num_senses_covered}')
@@ -129,6 +132,7 @@ print()
 
 ### SENSE-LEVEL EVALUATION
 sense_precision = safe_div(correct_senses, num_senses_for_eval)
+nonempty_sense_precision = safe_div(correct_senses, num_nonempty_senses_for_eval)
 sense_recall = safe_div(correct_senses, total_senses)
 sense_adj_recall = safe_div(pred_senses, total_senses)
 sense_f1 = safe_div(2 * sense_precision * sense_recall, sense_precision + sense_recall)
@@ -141,6 +145,7 @@ print(f"SENSE\tcorrect_senses:      {correct_senses}")
 print(f"SENSE\tnum_senses_for_eval: {num_senses_for_eval}")
 print(f"SENSE\ttotal_senses:        {total_senses}")
 print(f"\033[94mSENSE\tPRECISION\t{round(100 * sense_precision, 1)}\033[0m")
+print(f"\033[94mSENSE\tNONEMPTY PRECISION\t{round(100 * nonempty_sense_precision, 1)}\033[0m")
 print(f"SENSE\tRECALL\t{round(100 * sense_recall, 1)}")
 print(f"SENSE\tADJUSTED RECALL\t{round(100 * sense_adj_recall, 1)}")
 print(f"SENSE\tF1\t{round(100 * sense_f1, 1)}")
