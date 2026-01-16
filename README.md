@@ -111,16 +111,19 @@ This script has **seven required arguments** plus four **optional flags** that t
 3. **dictionary**  
    The bilingual dictionary used for lexical projection (typically the same `.tsv` dictionary used in Step 2).
 
-4. **alignment_file**  
+4. **pos_Mapping_file**  
+   Points to a dictionary that corresponds POS tags to one of the basic four ExpandNet expects. (default: `pos_mapping_u.tsv`)
+
+5. **alignment_file**  
    The alignment output file produced in Step 2.
 
-5. **output_file**  
+6. **output_file**  
    Path to the file where projected annotations will be saved.
 
-6. **join_char**  
+7. **join_char**  
    Character used to join multi-word lexical items during projection (default: `_`).
 
-7. **token_info_file**  
+8. **token_info_file**  
    Path to the file where detailed token-level logs will be written.
 
 ---

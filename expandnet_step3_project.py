@@ -16,6 +16,8 @@ def parse_args():
   parser.add_argument("--alignment_file", type=str, default="expandnet_step2_align.out.tsv",
                       help="File containing the output of step 2 (alignment).")
   parser.add_argument("--output_file", type=str, default="expandnet_step3_project.out.tsv")
+  parser.add_argument("--pos_mapping_file", type=str, default="pos_mapping_u.tsv",
+                      help="A file specifying how to convert POS tags to the 4 tags used by BN")
   parser.add_argument("--token_info_file", type=str, default="expandnet_step3_project.token_info.tsv",
                       help="(Helpful for understanding the process undergone.)")
   parser.add_argument("--join_char", type=str, default='')
@@ -109,11 +111,7 @@ def pos_map(in_pos):
   if in_pos.lower() in ['a', 'v', 'r', 'n', 'x']:
     return in_pos.lower()
   
-  POS_DICTIONARY = {'NOUN': 'n', 'PROPN': 'n', 'PRON': 'n', 'NUM': 'n',
-   'VERB': 'v', 'AUX': 'v',
-   'ADJ': 'a',
-   'ADV': 'r', 'ADP': 'r', 'PART': 'r', 'SCONJ': 'r',
-   'CCONJ': 'x', 'INTJ': 'x', 'SYM': 'x', 'PUNCT': 'x', 'DET': 'x', 'X': 'x'}
+  
   
   try:
     return POS_DICTIONARY[in_pos]
@@ -151,6 +149,16 @@ def is_valid_translation(eng_orig_tok, eng_word, fr_word, dict_, join_char, mask
   
   return True
 
+def load_pos_mapping(address):
+  ans = {}
+  with open(address, 'r', encoding='utf-8') as f:
+    for line in f:
+      if line.strip():
+        to, froms = line.strip().split('\t')
+        for element in froms.split():
+          ans[element] = to
+  return ans
+
 def write_the_stuff(file, tok, source, src_pos, t_pos_longer, t_candidate, candidate, bn, t_pos, join_char, tgt_sent, w, mask_ob):
   file.write(tok_id + '\t' + safe_replace(tok, join_char, ' ') + '\t' + 
              safe_replace(source, join_char, ' ') + '\t' + 
@@ -169,6 +177,10 @@ def get_alignments(alignments, i):
 print("Loading dictionary...")
 dict_wik = load_dict([args.dictionary], args.join_char)
 print(f"Dictionary loaded")
+
+print("Loading pos mapping...")
+POS_DICTIONARY = load_pos_mapping(args.pos_mapping_file)
+print("pos mapping loaded")                              
 
 # Group by sentence_id and aggregate bn_gold and lemma values into lists
 print("Preparing data...")
@@ -232,7 +244,6 @@ with open(args.token_info_file, 'w', encoding='utf-8') as f:
   sent_id = row['sentence_id']
   w = row['text']
   
-
   for i, bn in enumerate(bns):
     source = src[i]
     tok = src_tok[i]
