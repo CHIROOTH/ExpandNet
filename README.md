@@ -111,7 +111,7 @@ This script has **seven required arguments** plus four **optional flags** that t
 3. **dictionary**  
    The bilingual dictionary used for lexical projection (typically the same `.tsv` dictionary used in Step 2).
 
-4. **pos_Mapping_file**  
+4. **pos_mapping_file**  
    Points to a dictionary that corresponds POS tags to one of the basic four ExpandNet expects. (default: `pos_mapping_u.tsv`)
 
 5. **alignment_file**  
@@ -158,6 +158,7 @@ python3 expandnet_step3_project.py \
 --output_file expandnet_step3_project.out.tsv \
 --join_char _ \
 --token_info_file expandnet_step3_project.token_info.out.tsv \
+--pos_mapping_file pos_mapping_u.tsv \
 --no_pos_screen
 ```
 
