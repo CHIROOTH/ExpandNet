@@ -11,8 +11,9 @@ Takes six arguments:
 2. lang_src: The language key for the source language.
 3. lang_tgt: The language key for the target language.
 4. output_file: The address of the file where the result of the translation will be saved.
-5. join_char: The character to use to connect multi-word expressions. Should not be a space.
-6. no_pos: The system adds part-of-speech tags by default. Set this flag to skip that step.
+5. translator: 'gpt' or 'helsinki' to denote which of those translators to use.
+6. join_char: The character to use to connect multi-word expressions. Should not be a space.
+7. no_pos: The system adds part-of-speech tags by default. Set this flag to skip that step.
 
 Altogether, it can be run as such:
 
@@ -21,6 +22,7 @@ python3 expandnet_step1_translate.py \
 --src_data res/data/xlwsd_se13.xml \
 --lang_src en \
 --lang_tgt es \
+--translator gpt \
 --output_file expandnet_step1_translate.out.tsv \
 --join_char _ \
 --no_pos
@@ -71,19 +73,21 @@ The models employed in the code by default are: en_core_web_lg, es_core_news_lg,
 
 Takes eight arguments:
 1. translation_df_file: The address of the .tsv created by Step 1 (or created independently if working with an unsupported language pair)
-2. lang_src: The language key for the source language (default 'en').
-3. lang_tgt: The language key for the target language (default 'fr').
-4. aligner: The aligner to be used, one of 'simalign' or 'dbalign'.
-5. dict: If using dbalign, the multilingual dictionary which it will use, or 'bn' to use BabelNet as this dictionary (if available). 
-6. output_file: The address of the file where the result of the alignment step will be saved.
-7. join_char:  The character to use to connect multi-word expressions. Should not be a space.
-8. num_workers: The number of parallel processes to use. The default, 1, is strongly recommended for most cases.
+2. src_data: An XML file containing the sentences to be translated
+3. lang_src: The language key for the source language (default 'en').
+4. lang_tgt: The language key for the target language (default 'fr').
+5. aligner: The aligner to be used, one of 'simalign' or 'dbalign'.
+6. dict: If using dbalign, the multilingual dictionary which it will use, or 'bn' to use BabelNet as this dictionary (if available). 
+7. output_file: The address of the file where the result of the alignment step will be saved.
+8. join_char:  The character to use to connect multi-word expressions. Should not be a space.
+9. num_workers: The number of parallel processes to use. The default, 1, is strongly recommended for most cases.
 
 Altogether, it can be run as such:
 
 ```bash 
 python3 expandnet_step2_align.py \
 --translation_df_file expandnet_step1_translate.out.tsv \
+--src_data res/data/xlwsd_se13.xml \
 --lang_src en \
 --lang_tgt es \
 --aligner dbalign \

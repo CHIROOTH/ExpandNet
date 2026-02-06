@@ -1,10 +1,28 @@
 import argparse
 import pandas as pd
+import xml_utils
 
+def replace_lemma_with_gold(in_df, gold_file_path):
+    
+    # Process the gold XML and extract sentences
+    df_src = xml_utils.process_xml(gold_file_path)
+    df_sent = xml_utils.extract_sentences(df_src)
+  
+    # Make sure the DataFrames have the same length
+    if len(in_df) != len(df_sent):
+        raise ValueError(
+            f"Row mismatch: in_df has {len(in_df)} rows, but gold df has {len(df_sent)} rows"
+        )
+
+    # Replace 'lemma' in place
+    in_df['lemma'] = df_sent['lemma'].values  # .values ensures alignment by index
+  
 def parse_args():
   parser = argparse.ArgumentParser(description="Run ExpandNet on XLWSD dev set (R17).")
   parser.add_argument("--translation_df_file", type=str, default="expandnet_step1_translate.out.tsv",
                       help="Path to the TSV file containing tokenized translated sentences.")
+  parser.add_argument("--src_data", type=str, default="xlwsd_se13.xml",
+                      help="Path to the XLWSD XML corpus file.")
   parser.add_argument("--lang_src", type=str, default="en", 
                       help="Source language (default: en).")
   parser.add_argument("--lang_tgt", type=str, default="fr", 
@@ -86,6 +104,9 @@ else:
 
 print(f"Loading data from {args.translation_df_file}...")
 df_sent = pd.read_csv(args.translation_df_file, sep='\t')
+
+replace_lemma_with_gold(df_sent, args.src_data)
+
 print(f"Loaded {len(df_sent)} sentences\n")
 
 print("Aligning sentences...")

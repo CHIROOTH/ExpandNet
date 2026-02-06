@@ -4,6 +4,8 @@ import spacy
 from transformers import pipeline
 import xml_utils
 
+from tqdm import tqdm
+
 def parse_args():
   parser = argparse.ArgumentParser(description="Run ExpandNet on XLWSD dev set (R17).")
   parser.add_argument("--src_data", type=str, default="xlwsd_se13.xml",
@@ -14,6 +16,8 @@ def parse_args():
                       help="Target language (default: fr).")
   parser.add_argument("--output_file", type=str, default="expandnet_step1_translate.out.tsv",
                       help="File to store sentences and translations.")
+  parser.add_argument("--translator", type=str, default="gpt",
+                      help="What translator to use? Enter 'gpt' or 'helsinki'.")
   parser.add_argument(
     "--no_pos",
     action="store_false",
@@ -38,14 +42,28 @@ print(f'Data loaded: {len(df_src)} rows')
 df_sent = xml_utils.extract_sentences(df_src)
 print(f'Sentences assembled: {len(df_sent)} rows')
 
+translation_system = args.translator.lower()
+
+assert translation_system in ['gpt', 'helsinki']
+
+
 # Translate.
-tr_model = f"Helsinki-NLP/opus-mt-{args.lang_src}-{args.lang_tgt}"
-try:
+
+if translation_system == 'helsinki':
+ tr_model = f"Helsinki-NLP/opus-mt-{args.lang_src}-{args.lang_tgt}"
+ try:
   pipe = pipeline("translation", model=tr_model, device=0)
-except OSError:
+ except OSError:
   raise RuntimeError(f"Unsupported language pair: {args.lang_src} -> {args.lang_tgt}")
-except ValueError:
+ except ValueError:
   pipe = pipeline("translation", model=tr_model)
+  
+ translations = pipe(df_sent['text'].tolist(), batch_size=16)
+ 
+else:
+  from gpt_translate import translate_gpt, save_cache
+  translations = [{'translation_text': translate_gpt(x, args.lang_src, args.lang_tgt)} for x in tqdm(df_sent['text'].tolist())]
+  save_cache()
   
 
 model_map = {
@@ -71,9 +89,17 @@ try:
 except OSError:
   print(f"No spacy pipeline found for target language {args.lang_tgt}")
 
+CACHE = {}
 
 def tokenize_sentence(sentence: str, lang: str, join_char: str, lemmatize: bool = False):
-  doc = pipelines[lang](sentence)
+  key = (sentence, lang)
+  
+  if key not in CACHE:
+    CACHE[key] = pipelines[lang](sentence)
+  else:
+    pass
+  doc = CACHE[key]
+    
   if lemmatize:
     return ' '.join(token.lemma_.replace(' ', join_char) for token in doc)
   else:
@@ -84,8 +110,12 @@ def pos_tag_sentence(sentence: str, lang: str, join_char: str):
   return ' '.join(token.pos_.replace(' ', join_char) for token in doc)
 
 
-translations = pipe(df_sent['text'].tolist(), batch_size=16)
+
 df_sent['translation'] = [t['translation_text'] for t in translations]
+
+print("Translation complete!")
+
+print("Tokenizing...")
 
 df_sent['translation_token'] = df_sent['translation'].apply(
     lambda s: tokenize_sentence(s, args.lang_tgt, args.join_char, False)
@@ -103,7 +133,7 @@ if args.pos_tag:
 else:
   cols = ['sentence_id', 'text', 'translation', 'lemma', 'translation_token', 'translation_lemma']
 
-print(f'Translation complete: {len(df_sent)} sentences processed\n')
+print(f'Tokenization complete: {len(df_sent)} sentences processed\n')
 
 print(f'Saving to "{args.output_file}"...')
 

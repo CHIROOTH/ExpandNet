@@ -363,6 +363,9 @@ def erase_cache():
     SYNSET_CACHED_DICT.clear()
     ALIGNMENT_CACHE.clear()
     STEM_CACHE.clear()
+    POS_CACHE.clear()
+    _LEMMATIZER_CACHE.clear()
+    
     
    
 def get_synsets_cachable(word, lang, pos=None):
@@ -829,7 +832,7 @@ def accept_unconflicting_alignments(proposed, alignments, usi, uti, toks1, toks2
    
     return unfinished
     
-def consecutive_subsequences(nums):
+def consecutive_subsequences(nums, max_len=10): # TODO put this argument somewhere. But for now, assume that no subsequence longer than length 10 is going to be relevant
    
     if not nums:
         return []
@@ -845,9 +848,12 @@ def consecutive_subsequences(nums):
             # Generate all subsequences of length >= 2 from the segment
             for j in range(len(segment)):
                 for k in range(j + 2, len(segment) + 1):
-                    subsequences.append(segment[j:k])
+                    
+                    subseq = segment[j:k]
+                    if max_len is None or len(subseq) <= max_len:
+                        subsequences.append(subseq)
             start = i
-
+   
     return subsequences
 
 
