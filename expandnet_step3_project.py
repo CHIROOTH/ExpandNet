@@ -98,6 +98,7 @@ def pos_match(pos_a, pos_b):
     return False
   if len(pos_b) == 1:
     if pos_a == pos_b[0] and pos_a != 'x':
+   
       return True
     else:
       return False
@@ -111,15 +112,12 @@ def pos_map(in_pos):
   if in_pos.lower() in ['a', 'v', 'r', 'n', 'x']:
     return in_pos.lower()
   
-  
-  
   try:
+    
     return POS_DICTIONARY[in_pos]
   except:
     assert False, "INVALID POS: " + in_pos
 
-def is_mwe(tok, join_character):
-  return join_character in tok
 
 def safe_replace(s, old, new):
     if old == "":
@@ -127,7 +125,7 @@ def safe_replace(s, old, new):
     return s.replace(old, new)
 
 
-def is_valid_translation(eng_orig_tok, eng_word, fr_word, dict_, join_char, mask_obj, pos1=None, pos2=None):
+def is_valid_translation(eng_orig_tok, eng_word, fr_word, dict_, join_char, mask_obj, is_mwe, pos1, pos2):
   """Check if (eng_word, fr_word) is a valid translation pair in the dict."""
   
   if mask_obj['screen_ne'] and eng_orig_tok[0].isupper():
@@ -144,8 +142,9 @@ def is_valid_translation(eng_orig_tok, eng_word, fr_word, dict_, join_char, mask
     return False
   
   if mask_obj['screen_pos'] and not pos_match(pos1, pos2):
-    if not is_mwe(fr_word, join_char):
+    if not is_mwe:
       return False
+    
   
   return True
 
@@ -159,13 +158,13 @@ def load_pos_mapping(address):
           ans[element] = to
   return ans
 
-def write_the_stuff(file, tok, source, src_pos, t_pos_longer, t_candidate, candidate, bn, t_pos, join_char, tgt_sent, w, mask_ob):
+def write_the_stuff(file, tok, source, src_pos, t_pos_longer, t_candidate, candidate, bn, t_pos, join_char, tgt_sent, w, mask_ob, is_mwe):
   file.write(tok_id + '\t' + safe_replace(tok, join_char, ' ') + '\t' + 
              safe_replace(source, join_char, ' ') + '\t' + 
              src_pos.replace('_', ' ') + '\t' + t_pos_longer.replace('_', ' ') + '(' + t_pos.replace('_', ' ') + ')' + '\t' + safe_replace(t_candidate, join_char, ' ') + '\t'  + 
              safe_replace(candidate, join_char, ' ') + '\t' + 
              bn + '\t' + 
-             str(is_valid_translation(tok, source, candidate, dict_wik, join_char, mask_ob, 'n', 'n')) + '\t' + 
+             str(is_valid_translation(tok, source, candidate, dict_wik, join_char, mask_ob, is_mwe, 'n', 'n')) + '\t' + 
              str(bool(pos_match(src_pos, t_pos))).upper() + '\t' + 
              safe_replace(tgt_sent, join_char, ' ') + '\t' + w + '\n')
 
@@ -272,14 +271,17 @@ with open(args.token_info_file, 'w', encoding='utf-8') as f:
       t_candidates = []
       t_pos = 'x'
       target_pos_orig = 'X'
+      
+    
     if candidates:
       for t_candidate, candidate in zip(t_candidates, candidates):
         
         
         src_pos = bn[-1].lower()
-        write_the_stuff(f, tok, source, src_pos, target_pos_orig, t_candidate, candidate, bn, t_pos, args.join_char, args.join_char.join(tgt_tok), w, mask_object)
+        write_the_stuff(f, tok, source, src_pos, target_pos_orig, t_candidate, candidate, bn, t_pos, args.join_char, args.join_char.join(tgt_tok), w, mask_object, len(alignment_indices) > 1)
         
-        if is_valid_translation(tok, source, candidate, dict_wik, args.join_char, mask_object, src_pos, t_pos):
+        if is_valid_translation(tok, source, candidate, dict_wik, args.join_char, mask_object, len(alignment_indices) > 1, src_pos, t_pos):
+          
           senses.add((bn, candidate))
     else:
       f.write(tok_id + '\t' + tok.replace(args.join_char, '_').replace('_', args.join_char) + '\t' + source.replace(args.join_char, '_').replace('_', args.join_char) + '\t' + ' ' + '\t'  + ' ' + '\t' + ' ' + '\t' + ' ' + '\n')
