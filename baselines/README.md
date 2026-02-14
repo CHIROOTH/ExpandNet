@@ -12,6 +12,7 @@ The script takes three arguments:
 1. input_file: The .tsv file containing the contents of UWN. 
 2. language: The 639-3 language code of the language to extract.
 3. output_file: The file to save these output senses to.
+4. data_file: The file that contains the IDs of those synsets we care about.
 
 Altogether, it can be run as such:
 
@@ -20,4 +21,5 @@ python3 uwn-to-bn.py \
 --input_file res/uwn.tsv \
 --language spa \
 --output_file uwn-bn-out.tsv \
+--data_file res/scdev_gold_senses.txt
 ```
