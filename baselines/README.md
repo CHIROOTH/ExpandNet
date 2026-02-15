@@ -35,3 +35,15 @@ For example:
 ```bash 
 python oc14.py --lang es --src_data semcor_en.data.dev.xml --input_file exnet_step1_out_es.tsv --input_gold semcor_en.gold.key.dev.txt
 ```
+
+## Dictionary Baseline 
+
+The script `dictbaseline.py` can be used to obtain senses using a dictionary baseline
+
+It takes the input source data, the source gold, a dictionary, a join character, and the output file.
+
+For example:
+
+```bash 
+python dictbaseline.py --src_data semcor_en.data.dev.xml --dictionary /home/dbasil1/cmput650/ExpandNet/res/dicts/wikpan-en-es.tsv --src_gold semcor_en.gold.key.dev.txt --join_char _ --output_file dictionary_baseline_spanish.out.tsv
+```
