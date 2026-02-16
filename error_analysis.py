@@ -23,6 +23,28 @@ with open(args.gold_file, 'r', encoding='utf-8') as f:
 
 df = pd.read_csv(args.token_file, sep='\t')
 
+def remove_zero_width_characters(s: str) -> str:
+    
+    ZERO_WIDTH_CHARS = [
+        "\u200b",  # ZERO WIDTH SPACE
+        "\u200c",  # ZERO WIDTH NON-JOINER
+        "\u200d",  # ZERO WIDTH JOINER
+        "\u200e",  # LEFT-TO-RIGHT MARK
+        "\u200f",  # RIGHT-TO-LEFT MARK
+        "\u202a",  # LEFT-TO-RIGHT EMBEDDING
+        "\u202b",  # RIGHT-TO-LEFT EMBEDDING
+        "\u202c",  # POP DIRECTIONAL FORMATTING
+        "\u202d",  # LEFT-TO-RIGHT OVERRIDE
+        "\u202e",  # RIGHT-TO-LEFT OVERRIDE
+        "\ufeff",  # ZERO WIDTH NO-BREAK SPACE (BOM)
+    ]
+    for ch in ZERO_WIDTH_CHARS:
+        s = s.replace(ch, "")
+    return s
+
+def lowercase_and_remove_zero_width(string):
+    return remove_zero_width_characters(string.lower())
+
 def in_bn(token, lemma, id, frame, dont_worry_abt_caps=True):
     if dont_worry_abt_caps:
         token = token.lower()
