@@ -177,3 +177,18 @@ Output is an evaluation for each sense, and overall statistics.
 ```bash 
 python eval_release.py res/data/se_gold_es.tsv expandnet_step3_project.out.tsv
 ```
+
+# error_analysis.py
+
+This is a script which takes as input the token-level information file generated in step 3,
+as well as a gold reference file, and compiles a sheet which contains erroneous projections in a random order.
+
+It takes the arguments:
+
+1. token_file, the path to the token-level info file, and
+2. gold_file, the path to the gold reference file containing BN information.
+
+
+```bash 
+python error_analysis.py --token_file expandnet_step3_project.token_info.tsv --gold_file res/data/scdev_gold_es.tsv
+```
