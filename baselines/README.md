@@ -36,6 +36,18 @@ For example:
 python oc14.py --lang es --src_data semcor_en.data.dev.xml --input_file exnet_step1_out_es.tsv --input_gold semcor_en.gold.key.dev.txt
 ```
 
+## M23 Baseline 
+
+The script `m23.py` can be used to obtain senses using the Martelli reimplementation.
+
+It takes the input source data (and gold), the language, a sheet containing a translation (as would be used as input to ExpandNet step 2, for example) and a beta parameter (though please stick to the default value of 0.7)
+
+For example:
+
+```bash 
+python m23.py --translation_df_file exnet_gpt_es.tsv --src_data semcor_en.data.dev.xml --src_gold semcor_en.gold.key.dev.txt --output_file m23_out.tsv
+```
+
 ## Dictionary Baseline 
 
 The script `dictbaseline.py` can be used to obtain senses using a dictionary baseline
