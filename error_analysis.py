@@ -47,13 +47,19 @@ def lowercase_and_remove_zero_width(string):
 
 def in_bn(token, lemma, id, frame, dont_worry_abt_caps=True):
     if dont_worry_abt_caps:
-        token = token.lower()
-        lemma = lemma.lower()
+        old_token = token
+        token = lowercase_and_remove_zero_width(token)
+        lemma = lowercase_and_remove_zero_width(lemma)
         token = token.replace(' ', '_')
         lemma = lemma.replace(' ', '_')
-  
+        if token != old_token:
+            print("MADE A ZWJ CHANGE!")
+           
+           
     lemmas = frame[id].split()
-    if token in lemmas or lemma in lemmas or (dont_worry_abt_caps and token in [l.lower() for l in lemmas]) or (dont_worry_abt_caps and lemma in [l.lower() for l in lemmas]):
+        
+    
+    if token in lemmas or lemma in lemmas or (dont_worry_abt_caps and token in [lowercase_and_remove_zero_width(l) for l in lemmas]) or (dont_worry_abt_caps and lemma in [lowercase_and_remove_zero_width(l) for l in lemmas]):
         return '1', True, lemmas
     else:
         return '0', False, lemmas
@@ -117,6 +123,7 @@ with open(args.output_file, 'w', encoding='utf-8') as f:
             
   random.shuffle(to_write_log)
   print()
+  print(len(to_write_log), 'errors')
   for wl in to_write_log:
       f.write(wl)
     
