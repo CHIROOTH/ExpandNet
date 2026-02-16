@@ -3,10 +3,12 @@ pandas>=1.5.0
 spacy>=3.0.0
 transformers>=4.0.0
 torch>=1.10.0
+openai>=1.79.0
 
 # Alignment tools
 simalign>=0.3.0
 pandarallel>=1.6.0
+sentencepiece>=0.2.0
 
 # BabelNet (optional - only needed if using --dict bn)
 # babelnet>=5.0.0
