@@ -40,7 +40,7 @@ LANGUAGES = {
     "Romanian": 'ro',
     "Turkish": "tr",
     "Spanish": "es",
-    "ChineseSimplified": "zh",
+    "Simplified Chinese": "zh",
 }
 
 def translate_text(source_text, prompt, source_language, target_language, system_name):
@@ -52,10 +52,6 @@ def translate_text(source_text, prompt, source_language, target_language, system
         {"role": "system", "content": prompt},
         {"role": "user", "content": source_text}
     ]
-
-    
-    
-    
     
     response = client.chat.completions.create(
         model=system_name,
@@ -64,11 +60,10 @@ def translate_text(source_text, prompt, source_language, target_language, system
         presence_penalty=0.0,
         messages=messages
     )
-   
-  
+
     response.choices[0].message.content = re.sub(
-        r"\s([?.!])", r"\1", response.choices[0].message.content
-    )
+         r"\s([?.!])", r"\1", response.choices[0].message.content
+         )
    
     return response.choices[0].message.content.strip()
 
@@ -95,7 +90,7 @@ def translate_gpt(in_text, in_lang, out_lang, sys_name='gpt-4o'):
     longer_languages = {'en': 'English', 'fr': 'French', 'de': 'German', 
                         'it': 'Italian', 'es': 'Spanish', 'ar': 'Arabic', 
                         'ja': 'Japanese', 'ko': 'Korean', 'th': 'Thai', 
-                        'ro': 'Romanian', 'tr': 'Turkish'}
+                        'ro': 'Romanian', 'tr': 'Turkish', 'zh': 'Simplified Chinese'}
 
    
     src_language = longer_languages[in_lang]
@@ -104,10 +99,4 @@ def translate_gpt(in_text, in_lang, out_lang, sys_name='gpt-4o'):
             
     translated_text_labse =  (translate_cachable(in_text, PROMPT, src_language, tar_language, sys_name))
 
-    return translated_text_labse
-                
-            
-                
-                
- 
-   
+    return translated_text_labse  
