@@ -31,8 +31,6 @@ def parse_args():
   parser = argparse.ArgumentParser(description="Run ExpandNet on XLWSD dev set (R17).")
   parser.add_argument("--src_data", type=str, default="semcor_en.data.dev.xml", 
                       help="Source data.")
-  parser.add_argument("--lang", type=str, required=True,
-                      help="language code")
   parser.add_argument("--input_file", type=str, default="exnet_step1_out.tsv", 
                       help="File containing a translation column, like the output of ExpandNet step 1.")
   parser.add_argument("--input_gold", type=str, default="semcor_en.gold.key.dev.txt", 
@@ -49,7 +47,7 @@ def parse_args():
 args = parse_args()
 INPUT_FILE = args.input_file
 GOLD_FILE = args.input_gold
-langcode = args.lang
+
 #OUTPUT_FILE = 'extracted_synset_lemma_pairs.tsv'
 #I_THRESHOLD = 2.5   # Min ratio: freq(1st candidate) / freq(2nd candidate)
 #F_THRESHOLD = 5.0   # Max ratio: freq(synset) / freq(winning lemma)
@@ -71,7 +69,7 @@ def pos_map_this(a, m):
 # ===========================
 # CORE FUNCTION
 # ===========================
-def extract_synset_lemma_pairs_from_bn_format(df, langcode, i_threshold=1.0, f_threshold=float('inf')):
+def extract_synset_lemma_pairs_from_bn_format(df, i_threshold=1.0, f_threshold=float('inf')):
     """
     Extracts (synset, lemma) pairs from SE13-style dataframe.
     - 'bn_gold_list': string repr of list like "[nan, 'bn:00041942n', ...]"
@@ -79,10 +77,7 @@ def extract_synset_lemma_pairs_from_bn_format(df, langcode, i_threshold=1.0, f_t
     Uses spaCy for target language lemmatization and POS tagging.
     """
     # Load spaCy model (will error if not installed — see instructions below)
-    try:
-        nlp = spacy.load(f"{langcode}_core_news_lg")
-    except OSError:
-        nlp = spacy.load(f"xx_ent_wiki_lg")
+    
 
     # Map spaCy POS tags to WordNet-style single chars
     pos_map = {'NOUN': 'n', 'VERB': 'v', 'ADJ': 'a', 'ADV': 'r'}
@@ -129,7 +124,7 @@ def extract_synset_lemma_pairs_from_bn_format(df, langcode, i_threshold=1.0, f_t
             if synset_pos not in 'nvraNOUNVERBADJADV':  # Only care about open-class words
                 continue
             
-            assert len(target_lemmas) == len(target_pos_tags)
+            
             
             # Collect all target lemmas with matching POS from this sentence
             for lemma, pos in zip(target_lemmas, target_pos_tags):
@@ -244,7 +239,6 @@ if __name__ == '__main__':
     print(f"\nRunning extraction with i={I_THRESHOLD}, f={F_THRESHOLD}...")
     pairs = extract_synset_lemma_pairs_from_bn_format(
         combined,
-        langcode,
         i_threshold=I_THRESHOLD,
         f_threshold=F_THRESHOLD
     )

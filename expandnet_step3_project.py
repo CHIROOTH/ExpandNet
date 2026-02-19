@@ -139,7 +139,8 @@ def is_valid_translation(eng_orig_tok, eng_word, fr_word, dict_, join_char, mask
     return True
   
   if mask_obj['screen_dict'] and fr_word not in dict_[eng_word]:
-    return False
+    if fr_word != eng_word:
+      return False
   
   if mask_obj['screen_pos'] and not pos_match(pos1, pos2):
     if not is_mwe:
@@ -158,7 +159,7 @@ def load_pos_mapping(address):
           ans[element] = to
   return ans
 
-def write_the_stuff(file, tok, source, src_pos, t_pos_longer, t_candidate, candidate, bn, t_pos, join_char, tgt_sent, w, mask_ob, is_mwe):
+def write_to_file(file, tok, source, src_pos, t_pos_longer, t_candidate, candidate, bn, t_pos, join_char, tgt_sent, w, mask_ob, is_mwe):
   file.write(tok_id + '\t' + safe_replace(tok, join_char, ' ') + '\t' + 
              safe_replace(source, join_char, ' ') + '\t' + 
              src_pos.replace('_', ' ') + '\t' + t_pos_longer.replace('_', ' ') + '(' + t_pos.replace('_', ' ') + ')' + '\t' + safe_replace(t_candidate, join_char, ' ') + '\t'  + 
@@ -278,7 +279,7 @@ with open(args.token_info_file, 'w', encoding='utf-8') as f:
         
         
         src_pos = bn[-1].lower()
-        write_the_stuff(f, tok, source, src_pos, target_pos_orig, t_candidate, candidate, bn, t_pos, args.join_char, args.join_char.join(tgt_tok), w, mask_object, len(alignment_indices) > 1)
+        write_to_file(f, tok, source, src_pos, target_pos_orig, t_candidate, candidate, bn, t_pos, args.join_char, args.join_char.join(tgt_tok), w, mask_object, len(alignment_indices) > 1)
         
         if is_valid_translation(tok, source, candidate, dict_wik, args.join_char, mask_object, len(alignment_indices) > 1, src_pos, t_pos):
           
