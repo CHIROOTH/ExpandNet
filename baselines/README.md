@@ -28,12 +28,12 @@ python3 uwn-to-bn.py \
 
 The script `oc14.py` can be used to obtain senses using the Oliver and Climent reimplementation.
 
-It takes the input source data, the language, a sheet containing a translation (as would be used as input to ExpandNet step 2, for example) and a file containing the source-side sense annotations.
+It takes the input source data, a sheet containing a translation (as would be used as input to ExpandNet step 2, for example) and a file containing the source-side sense annotations.
 
 For example:
 
 ```bash 
-python oc14.py --lang es --src_data semcor_en.data.dev.xml --input_file exnet_step1_out_es.tsv --input_gold semcor_en.gold.key.dev.txt
+python oc14.py --src_data semcor_en.data.dev.xml --input_file exnet_step1_out_es.tsv --input_gold semcor_en.gold.key.dev.txt
 ```
 
 ## M23 Baseline 

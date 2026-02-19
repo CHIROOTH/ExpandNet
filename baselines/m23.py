@@ -178,16 +178,15 @@ def get_alignments(alignments, i):
   return(js)
 
 # print()  
-for j, row in df_sent.iterrows():
+for j, row in tqdm(df_sent.iterrows(), total=len(df_sent), desc="Aligning"):
   sid = row['sentence_id']
   src = row['lemma'].split(' ')
   tgt = row['translation_lemma'].split(' ')
-  ali = align('y', 
+  ali = align('y',
                       'x',
                       row['lemma'].split(' '),
                       row['translation_lemma'].split(' '))
   bns = row['bn_gold_list']
-  print(f"\r{j}/{len(df_sent)}", end='')
   # print('SID', sid)
   # print('TXT', row['text'])
   # print('SRC', src)
