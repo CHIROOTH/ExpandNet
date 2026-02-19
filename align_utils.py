@@ -535,8 +535,11 @@ def screen_alignments(a, s, t, len1, len2, slan, tlan, al_obj):
     if not (len(t1) == len1 and len(t2) == len2):
         return a    
     for pair in a:
-        if pos_match(slan, tlan, p1[pair[0]], p2[pair[1]], t1[pair[0]], t2[pair[1]], al_obj):
-            answer.append(pair)
+        try:
+            if pos_match(slan, tlan, p1[pair[0]], p2[pair[1]], t1[pair[0]], t2[pair[1]], al_obj):
+                answer.append(pair)
+        except IndexError:
+            return a
         
     return answer
     

@@ -15,6 +15,35 @@ args = parse_args()
 
 goldframe = {}
 
+def binary_string(truth_val):
+    if isinstance(truth_val, str):
+        if truth_val.upper().startswith("T"):
+            return '1'
+        elif truth_val.upper().startswith("F"):
+            return '0'
+        elif truth_val == '1':
+            return '1'
+        elif truth_val == '0':
+            return '0'
+        else:
+            if truth_val:
+                return '1'
+            else:
+                return '0'
+    elif isinstance(truth_val, bool):
+        if truth_val:
+            return '1'
+        else:
+            return '0'
+    elif isinstance(truth_val, int):
+        if truth_val == 1:
+            return '1'
+        elif truth_val == 0:
+            return '0'
+        else:
+            assert False
+    assert False
+
 with open(args.gold_file, 'r', encoding='utf-8') as f:
     for line in f:
         a, b = line.split('\t')
@@ -46,17 +75,22 @@ def lowercase_and_remove_zero_width(string):
     return remove_zero_width_characters(string.lower())
 
 def in_bn(token, lemma, id, frame, dont_worry_abt_caps=True):
+    
     if dont_worry_abt_caps:
         old_token = token
         token = lowercase_and_remove_zero_width(token)
         lemma = lowercase_and_remove_zero_width(lemma)
         token = token.replace(' ', '_')
         lemma = lemma.replace(' ', '_')
-        if token != old_token:
-            print("MADE A ZWJ CHANGE!")
+        
            
-           
-    lemmas = frame[id].split()
+    
+    if id in frame:
+        lemmas = frame[id].split()
+    else:
+        lemmas = []
+    
+        
         
     
     if token in lemmas or lemma in lemmas or (dont_worry_abt_caps and token in [lowercase_and_remove_zero_width(l) for l in lemmas]) or (dont_worry_abt_caps and lemma in [lowercase_and_remove_zero_width(l) for l in lemmas]):
@@ -80,14 +114,14 @@ with open(args.output_file, 'w', encoding='utf-8') as f:
   for index, row in df.iterrows():
     assert len(row) == 12, str(len(row))
     
-    if int(index) % 1000 == 0: # type: ignore
+    if int(index) % 100 == 0: # type: ignore
         print(f"\r{str(index)} / {str(len(df))}", end='')
     if row['Token ID'] == 'wf':
         continue
     if len(str(row['Translated Token']).strip()) == 0:
         continue
     
-    
+   
     correct, correct_b, synset_lemmas = in_bn(
         row['Translated Token'],
         row['Translated Lemma'],
@@ -95,9 +129,9 @@ with open(args.output_file, 'w', encoding='utf-8') as f:
         goldframe
     )
     to_write = [row['Source Token'], row['Source Lemma'], row['Synset ID'], row['Translated Token'], row['Translated Lemma'],
-                row['Token ID'][:9], row['Source Sentence'], row['Target Sentence'], str(int((correct_b) or len(synset_lemmas) == 0)), 
+                row['Token ID'][:9], row['Source Sentence'], row['Target Sentence'], binary_string((correct_b) or len(synset_lemmas) == 0), 
                 correct, ' '.join(synset_lemmas), row['Token ID'], row['Source POS'], row['Target POS'], 
-                str(int(row['Link in Dictionary?'])), str(int(row['POS Match?']))]
+                binary_string(row['Link in Dictionary?']), binary_string(row['POS Match?'])]
    
    
    
@@ -112,7 +146,7 @@ with open(args.output_file, 'w', encoding='utf-8') as f:
     
     # print(to_write_strs[7])
    
-    if str(int(row['Link in Dictionary?'])) == '1' and str(int(row['POS Match?'])) == '1' and str(int((correct_b) or len(synset_lemmas) == 0)) == '0':
+    if binary_string(row['Link in Dictionary?']) == '1' and binary_string(row['POS Match?']) == '1' and binary_string((correct_b) or len(synset_lemmas) == 0) == '0':
         # print("Mismatch found:")
         already_done.add(this_pair)
         str_to_write = '\t'.join(to_write_strs).replace('\n', '')
