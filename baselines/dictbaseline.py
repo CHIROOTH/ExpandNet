@@ -2,6 +2,8 @@ import argparse
 import xml_utils
 import pandas as pd
 import csv
+import sys
+csv.field_size_limit(sys.maxsize)
 
 def parse_args():
   parser = argparse.ArgumentParser(description="Run ExpandNet on XLWSD dev set (R17).")
