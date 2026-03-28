@@ -92,20 +92,35 @@ except OSError:
 
 CACHE = {}
 
-def tokenize_sentence(sentence: str, lang: str, join_char: str, lemmatize: bool = False):
-  key = (sentence, lang)
+# def tokenize_sentence(sentence: str, lang: str, join_char: str, lemmatize: bool = False):
+#   key = (sentence, lang)
   
-  if key not in CACHE:
-    CACHE[key] = pipelines[lang](sentence)
-  else:
-    pass
-  doc = CACHE[key]
+#   if key not in CACHE:
+#     CACHE[key] = pipelines[lang](sentence)
+#   else:
+#     pass
+#   doc = CACHE[key]
     
-  if lemmatize:
-    return ' '.join(token.lemma_.replace(' ', join_char) for token in doc)
-  else:
-    return ' '.join(token.text.replace(' ', join_char) for token in doc)
-  
+#   if lemmatize:
+#     return ' '.join(token.lemma_.replace(' ', join_char) for token in doc)
+#   else:
+#     return ' '.join(token.text.replace(' ', join_char) for token in doc)
+
+def tokenize_sentence(sentence: str, lang: str, join_char: str, lemmatize: bool = False):
+    if lang not in pipelines:
+        # Fall back to whitespace tokenization if no pipeline available
+        return ' '.join(sentence.split())
+    
+    key = (sentence, lang)
+    if key not in CACHE:
+        CACHE[key] = pipelines[lang](sentence)
+    doc = CACHE[key]
+    
+    if lemmatize:
+        return ' '.join(token.lemma_.replace(' ', join_char) for token in doc)
+    else:
+        return ' '.join(token.text.replace(' ', join_char) for token in doc)
+
 def pos_tag_sentence(sentence: str, lang: str, join_char: str):
   doc = pipelines[lang](sentence)
   return ' '.join(token.pos_.replace(' ', join_char) for token in doc)
