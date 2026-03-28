@@ -70,7 +70,8 @@ model_map = {
   'en': 'en_core_web_lg',
   'zh': 'zh_core_web_lg',
   'fr': 'fr_core_news_lg',
-  'es': 'es_core_news_lg'
+  'es': 'es_core_news_lg',
+  'hi': 'xx_ent_wiki_sm',
 }
 
 # Chinese doesn't use lemmatization
