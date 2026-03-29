@@ -115,13 +115,11 @@ df_sent['alignment'] = apply_fn(
     lambda row: align(
         args.lang_src,
         args.lang_tgt,
-        row['lemma'].split(),
-        # row['lemma'].split(' '),
-        # row['translation_lemma'].split(' ')
-        row['translation_lemma'].split(),
-    ) if isinstance(row['lemma'], str) and isinstance(row['translation_lemma'], str)
-   and row['lemma'].strip() and row['translation_lemma'].strip()
-   else []
+        # row['lemma'].split(),
+        row['lemma'].split(' '),
+        row['translation_lemma'].split(' ')
+        # row['translation_lemma'].split(),
+    ) 
 )
 
 print(f"\nSaving results to {args.output_file}...")
