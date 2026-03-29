@@ -115,8 +115,10 @@ df_sent['alignment'] = apply_fn(
     lambda row: align(
         args.lang_src,
         args.lang_tgt,
-        row['lemma'].split(' '),
-        row['translation_lemma'].split(' ')
+        row['lemma'].split(),
+        # row['lemma'].split(' '),
+        # row['translation_lemma'].split(' ')
+        row['translation_lemma'].split(),
     )
 )
 
